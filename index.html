@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps API project</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <style>
+
+      
+    html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Lato', sans-serif;
+    }
+
+    .wrapper {
+        text-align: center;
+    }
+    /*++++++++++++++++++++++ MAP ++++++++++++++++++++++++++++ */
+    #map {
+    height: 400px;
+    width: 95%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    }
+
+    .mapModal {
+        min-height: 200px;
+    }
+    
+    .mapModal button {
+        padding: 10px;
+        background-color: orange;
+        border-radius: 15px;
+        border: none;
+    }
+    
+    /*++++++++++++++++++++++ NAV ++++++++++++++++++++++++++++ */
+
+    nav {
+    width: 100%;
+    min-height: 30px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding-top: 15px;
+    color: white;
+    }
+
+    nav span {
+        font-size: 20px;
+        margin-left: 15px;
+    }
+    nav button {
+    background: transparent;
+    font-weight: bold;
+    border: none;
+    border-radius: 15px;
+    margin-left: 15px;
+    color: white;
+    }
+
+    nav button:hover,
+    nav span:hover {
+        cursor: pointer;
+    }
+
+    
+    /*++++++++++++++++++++++ FOOTER ++++++++++++++++++++++++++++ */
+    @keyframes rot {
+        0% {
+            transform: scale(1.1); 
+        }
+        100% {
+            transform: scale(0.8);
+        }  
+    }
+
+    footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        min-height: 55px;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        font-weight: bold;
+    }
+
+    .footer-logo {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        padding-left: 30px;
+        animation: rot 2s infinite;
+    }
+    /*++++++++++++++++++++++ MODAL ++++++++++++++++++++++++++++ */
+        .modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.4); 
+    }
+
+    .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%; 
+    }
+
+
+    .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+    }
+    </style>
+</head>
+  <body>
+    <nav>
+        <span>MvdB Boat Service</span>
+        <a href="#"><button>HOME</button></a>
+        <button id="AboutBtn">ABOUT PROJECT</button>
+        <a href="https://github.com/StasiakMike"><button>GitHub</button></a>
+    </nav>
+
+    <div class="wrapper">
+        <h1>DISCOVER OUR FAST BOATS CONNECTIONS</h1>
+        <div id="map"></div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">
+            <a href="http:\\mvdbsoftware.eu" target="_blank">
+                <img src="LOGO4.svg" alt="MvdB logo" height="50" width="50">
+            </a>
+        </div>
+
+            <p>
+            2019 &copy; Mike Stasiak & MvdB Software Solutions
+            </p>
+    </footer>
+
+    <!-- MODAL -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>About</h2>
+            <ul>
+                <li>Project simulates Route Map features from bus or airlines companies.</li>
+                <li>Project build for traning purpose.</li>
+                <li>Google Maps API been used.</li>
+                <li>Uses many features described in GM docs, markers, styles, map drawing and so on.</li>
+                <li>Yes, I do realize I don't have active google payments and map works in developer mode.</li>
+                <li>To see the code visit my GitHub repo.</li>
+            </ul>
+        </div>
+    </div>
+    
+<script>
+var map;
+var hubMarker = {lat: 17.120583, lng: -61.846194};
+var stNevisMarker = {lat: 17.138058, lng: -62.630116};
+var monserratMarker = {lat: 16.803286, lng: -62.206082};
+var barbudaMarker = {lat: 17.590569, lng: -61.821543};
+var oranjenstadMarker = {lat: 17.482457, lng: -62.988024};
+var markerImg = 'marker.svg';
+
+function initMap() {
+var styledMapType = new google.maps.StyledMapType(  
+[
+{
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#f5f5f5"
+}
+]
+},
+{
+"elementType": "labels.icon",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#616161"
+}
+]
+},
+{
+"elementType": "labels.text.stroke",
+"stylers": [
+{
+"color": "#f5f5f5"
+}
+]
+},
+{
+"featureType": "administrative.land_parcel",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#bdbdbd"
+}
+]
+},
+{
+"featureType": "poi",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#eeeeee"
+}
+]
+},
+{
+"featureType": "poi",
+"elementType": "labels.text",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"featureType": "poi",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#757575"
+}
+]
+},
+{
+"featureType": "poi.business",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"featureType": "poi.park",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#e5e5e5"
+}
+]
+},
+{
+"featureType": "poi.park",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#9e9e9e"
+}
+]
+},
+{
+"featureType": "road",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"featureType": "road",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#ffffff"
+}
+]
+},
+{
+"featureType": "road",
+"elementType": "labels.icon",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"featureType": "road.arterial",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#757575"
+}
+]
+},
+{
+"featureType": "road.highway",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#dadada"
+}
+]
+},
+{
+"featureType": "road.highway",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#616161"
+}
+]
+},
+{
+"featureType": "road.local",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#9e9e9e"
+}
+]
+},
+{
+"featureType": "transit",
+"stylers": [
+{
+"visibility": "off"
+}
+]
+},
+{
+"featureType": "transit.line",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#e5e5e5"
+}
+]
+},
+{
+"featureType": "transit.station",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#eeeeee"
+}
+]
+},
+{
+"featureType": "water",
+"elementType": "geometry",
+"stylers": [
+{
+"color": "#32a852"
+}
+]
+},
+{
+"featureType": "water",
+"elementType": "labels.text.fill",
+"stylers": [
+{
+"color": "#32a852"
+}
+]
+}
+] );
+
+//MAIN MAP CONTROLS
+map = new google.maps.Map(document.getElementById('map'), {
+center: hubMarker,
+zoom: 8,
+zoomControl: false,
+mapTypeControl: false,
+fullscreenControl: false,
+scaleControl: false,
+streetViewControl: false,
+rotateControl: false,
+});
+
+
+
+//MAP MARKERS AND INFO WINDOWS
+
+//marker for Main Harbour Antigua
+var marker = new google.maps.Marker({
+position: hubMarker,
+map: map,
+animation: google.maps.Animation.DROP,
+title: 'Main Harbour Antigua',
+icon: markerImg,
+});  
+
+var contentStringAnitgua = '<div class="mapModal">'+
+'<div id="siteNotice">'+
+'</div>'+
+'<h1 id="firstHeading" class="firstHeading">Our Main Harbour in Antigua</h1>'+
+'<div id="bodyContent">'+
+'<p><b>Boat schedule:</b></p>'+
+'<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia vel quo doloribus tempora nisi placeat, repellat error modi nesciunt ipsum quibusdam. Nostrum excepturi beatae corporis numquam ex eaque facere earum. Debitis soluta maiores sunt est praesentium. Consequatur tenetur voluptas vitae.</p> <button>BUY TICKETS NOW</button>'+
+'</div>'+
+'</div>';
+
+
+var infowindowAntigua = new google.maps.InfoWindow({
+content: contentStringAnitgua
+});
+
+marker.addListener('click', function() {
+infowindowAntigua.open(map, marker);
+});
+
+//marker for st Nevis
+var markerStNevis = new google.maps.Marker({
+position: stNevisMarker,
+map: map,
+animation: google.maps.Animation.DROP,
+icon: markerImg,
+title: 'st. Nevis Harbour'
+});   
+
+var contentStringStNevis = '<div class="mapModal">'+
+'<div id="siteNotice">'+
+'</div>'+
+'<h1 id="firstHeading" class="firstHeading">St. Nevis Harbour</h1>'+
+'<div id="bodyContent">'+
+'<p><b>Boat schedule:</b></p>'+
+'<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia vel quo doloribus tempora nisi placeat, repellat error modi nesciunt ipsum quibusdam. Nostrum excepturi beatae corporis numquam ex eaque facere earum. Debitis soluta maiores sunt est praesentium. Consequatur tenetur voluptas vitae.</p> <button>BUY TICKETS NOW</button>'+
+'</div>'+
+'</div>';
+
+
+var infowindowStNevis = new google.maps.InfoWindow({
+content: contentStringStNevis
+});
+
+
+markerStNevis.addListener('click', function() {
+infowindowStNevis.open(map, marker);
+});
+
+//marker for Monserrat 
+var markerMonserrat = new google.maps.Marker({
+position: monserratMarker,
+map: map,
+animation: google.maps.Animation.DROP,
+icon: markerImg,
+title: 'Monserrat Harbour'
+});   
+
+var contentStringMonserrat = '<div class="mapModal">'+
+'<div id="siteNotice">'+
+'</div>'+
+'<h1 id="firstHeading" class="firstHeading">Monserrat Harbour</h1>'+
+'<div id="bodyContent">'+
+'<p><b>Boat schedule:</b></p>'+
+'<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia vel quo doloribus tempora nisi placeat, repellat error modi nesciunt ipsum quibusdam. Nostrum excepturi beatae corporis numquam ex eaque facere earum. Debitis soluta maiores sunt est praesentium. Consequatur tenetur voluptas vitae.</p> <button>BUY TICKETS NOW</button>'+
+'</div>'+
+'</div>';
+
+
+var infowindowMonserrat = new google.maps.InfoWindow({
+content: contentStringMonserrat
+});
+
+markerMonserrat.addListener('click', function() {
+infowindowMonserrat.open(map, marker);
+});
+
+//marker for Barbuda
+var markerBarbuda = new google.maps.Marker({
+position: barbudaMarker,
+map: map,
+animation: google.maps.Animation.DROP,
+icon: markerImg,
+title: 'Barbuda Harbour'
+});   
+
+var contentStringBarbuda = '<div class="mapModal">'+
+'<div id="siteNotice">'+
+'</div>'+
+'<h1 id="firstHeading" class="firstHeading">Barbuda Harbour</h1>'+
+'<div id="bodyContent">'+
+'<p><b>Boat schedule:</b></p>'+
+'<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia vel quo doloribus tempora nisi placeat, repellat error modi nesciunt ipsum quibusdam. Nostrum excepturi beatae corporis numquam ex eaque facere earum. Debitis soluta maiores sunt est praesentium. Consequatur tenetur voluptas vitae.</p> <button>BUY TICKETS NOW</button>'+
+'</div>'+
+'</div>';
+
+
+var infowindowBarbuda = new google.maps.InfoWindow({
+content: contentStringBarbuda
+});
+
+markerBarbuda.addListener('click', function() {
+infowindowBarbuda.open(map, marker);
+});
+
+//marker for Oranjestad
+var markerOranjensatd = new google.maps.Marker({
+position: oranjenstadMarker,
+map: map,
+animation: google.maps.Animation.DROP,
+icon: markerImg,
+title: 'Ornajenstad Harbour'
+});   
+
+var contentStringOranjenstad = '<div class="mapModal">'+
+'<div id="siteNotice">'+
+'</div>'+
+'<h1 id="firstHeading" class="firstHeading">Oranjenstad Harbour</h1>'+
+'<div id="bodyContent">'+
+'<p><b>Boat schedule:</b></p>'+
+'<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia vel quo doloribus tempora nisi placeat, repellat error modi nesciunt ipsum quibusdam. Nostrum excepturi beatae corporis numquam ex eaque facere earum. Debitis soluta maiores sunt est praesentium. Consequatur tenetur voluptas vitae.</p> <button>BUY TICKETS NOW</button>'+
+'</div>'+
+'</div>';
+
+
+var infowindowOranjenstad = new google.maps.InfoWindow({
+content: contentStringOranjenstad
+});
+
+markerOranjensatd.addListener('click', function() {
+infowindowOranjenstad.open(map, marker);
+});
+
+//DRAWING THE BOAT ROUTES
+//st Nevis boat route
+var stNevisRoute = [
+{lat: 17.120583, lng: -61.846194},
+{lat: 17.138058, lng: -62.630116},
+];
+var stNevisPath = new google.maps.Polyline({
+path: stNevisRoute,
+geodesic: true,
+strokeColor: '#ffa600',
+strokeOpacity: 1.0,
+strokeWeight: 2
+});
+
+stNevisPath.setMap(map);
+
+//Monserrat boat route
+var monserratRoute = [
+{lat: 17.120583, lng: -61.846194},
+{lat: 16.803286, lng: -62.206082},
+];
+var monserratPath = new google.maps.Polyline({
+path: monserratRoute,
+geodesic: true,
+strokeColor: '#ffa600',
+strokeOpacity: 1.0,
+strokeWeight: 2
+});
+
+monserratPath.setMap(map);
+
+//Barbuda boat route
+var barbudaRoute = [
+{lat: 17.120583, lng: -61.846194},
+{lat: 17.590569, lng: -61.821543},
+];
+var barbudaPath = new google.maps.Polyline({
+path: barbudaRoute,
+geodesic: true,
+strokeColor: '#ffa600',
+strokeOpacity: 1.0,
+strokeWeight: 2
+});
+
+barbudaPath.setMap(map);
+
+//Oranjestad boat route
+var oranjestadRoute = [
+{lat: 17.120583, lng: -61.846194},
+{lat: 17.482457, lng: -62.988024},
+];
+var oranjestadPath = new google.maps.Polyline({
+path: oranjestadRoute,
+geodesic: true,
+strokeColor: '#ffa600',
+strokeOpacity: 1.0,
+strokeWeight: 2
+});
+
+oranjestadPath.setMap(map);
+
+map.mapTypes.set('styled_map', styledMapType);
+map.setMapTypeId('styled_map');
+}
+
+// Modal scripts
+var modal = document.getElementById("myModal");
+var btn = document.getElementById("AboutBtn");
+var span = document.getElementsByClassName("close")[0];
+
+btn.onclick = function() {
+modal.style.display = "block";
+}
+
+span.onclick = function() {
+modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+if (event.target == modal) {
+modal.style.display = "none";
+}
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcqXT9FnmJUmr_8alWsZ5k5R4L01HY1AU&language=en&callback=initMap"
+async defer></script>
+</body>
+</html>
